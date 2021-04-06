@@ -47,13 +47,16 @@ int main(int argc, char * argv[]) {
 	if (scene->HasMeshes()) {
 
 		aiMesh * mesh = scene->mMeshes[0];
-
 		std::cout << "ucitana poligonalna mreza" << std::endl;
 		
 		std::cout << "prvih 10 tocaka:" << std::endl;
 		//popis svih tocaka u modelu s x, y, z koordinatama
 		for (int i = 0; i < 10 && i < mesh->mVertices->Length(); i++)
+		{
+			std::cout << i << std::endl;
 			std::cout << mesh->mVertices[i].x << " " << mesh->mVertices[i].y << " " << mesh->mVertices[i].z << std::endl;
+		}
+			
 		
 		std::cout << "prvih 10 uv koordinata na teksturi" << std::endl;
 		//popis svih koordinata u texturi u modelu s u,v koordinatama 
@@ -63,7 +66,6 @@ int main(int argc, char * argv[]) {
 
 
 		std::cout << "prvih 10 poligona:" << std::endl;
-
 		//svaki poligon se sastoji od 3 ili vise tocki. 
 		for (int i = 0; i < 10 && i < mesh->mNumFaces; i++) {
 			
