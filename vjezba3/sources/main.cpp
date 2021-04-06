@@ -22,7 +22,7 @@ bool follow = 0;
 
 typedef struct
 {
-    float x, y, z;
+	float x, y, z;
 } Vertex;
 
 std::vector<Vertex> points;
@@ -72,24 +72,34 @@ void framebuffer_size_callback(GLFWwindow *window, int Width, int Height)
 	glViewport(0, 0, width, height);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
 		follow = !follow;
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
-		Vertex v = {(xpos/width), (ypos/height), 0};
+		xpos = xpos / (width / 2) - 1.0;
+		ypos = -1 * (ypos / (height / 2) - 1.0);
+		Vertex v = {xpos, ypos, 0.0f};
 		points.push_back(v);
-		std::cout << v.x << " " << v.y << " " << v.z << std::endl;
 	}
 }
 
-void cursor_callback(GLFWwindow* window, double xpos, double ypos)
+void cursor_callback(GLFWwindow *window, double xpos, double ypos)
 {
-	if(follow)
+	xpos = xpos / (width / 2) - 1.0;
+	ypos = -1 * (ypos / (height / 2) - 1.0);
+	Vertex v = {xpos, ypos, 0.0f};
+
+	if (points.size() == 1)
+	{	
+		points.push_back(v);
+	}
+	else if(points.size() > 1)
 	{
-		//std::cout << "cursor pos: " << xpos << " " << ypos << std::endl;
+		points.pop_back();
+		points.push_back(v);
 	}
 }
 
@@ -131,9 +141,9 @@ int main(int argc, char *argv[])
 	//glEnable(GL_CULL_FACE); //ukljuci uklanjanje straznjih poligona -- za ovaj primjer je iskljuceno
 	//glCullFace(GL_BACK);
 
-	glClearColor(0.15, 0.1, 0.1, 1); 
+	glClearColor(0.15, 0.1, 0.1, 1);
 
-	glfwSwapInterval(0); 
+	glfwSwapInterval(0);
 
 	FPSManager FPSManagerObject(window, 60, 1.0, "Zadatak X");
 
@@ -148,9 +158,6 @@ int main(int argc, char *argv[])
 	//prenosenje podataka i objasnjavanje u kojem formatu su ti podaci
 	//generiranje buffera
 
-	points.push_back(Vertex{1.0f, 1.0f, 0});
-	points.push_back(Vertex{-1.0f, -1.0f, 0});
-
 	GLuint VAO;
 	GLuint VBO[2];
 	GLuint EBO;
@@ -161,12 +168,11 @@ int main(int argc, char *argv[])
 
 	GLint lokacijaUniformVarijable = glGetUniformLocation(sjencar->ID, "u_color");
 
-
 	glBindVertexArray(VAO);
 	//buffer za koordinate i povezi s nultim mjestom u sjencaru -- layout (location = 0)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(points) * sizeof(Vertex), &points[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *)0);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points[0], GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
 
 	//buffer za boje i povezi s prvim mjestom u sjencaru -- layout (location = 1)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
@@ -197,11 +203,11 @@ int main(int argc, char *argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(sjencar->ID);
-			glBindVertexArray(VAO);
-			glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(points) * sizeof(Vertex), &points[0], GL_DYNAMIC_DRAW);
-			glUniform3f(lokacijaUniformVarijable, 0.5, 1.0, 1.0);
-			glDrawArrays(GL_LINE_STRIP, 0, sizeof(points));
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * points.size(), &points[0], GL_DYNAMIC_DRAW);
+		glUniform3f(lokacijaUniformVarijable, 0.5, 1.0, 1.0);
+		glDrawArrays(GL_LINE_STRIP, 0, points.size());
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
