@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
             glUseProgram(shader->ID);
             glBindVertexArray(VAO);
-		    glDrawElements(GL_LINE_STRIP, indeces.size(), GL_UNSIGNED_INT, 0);
+		    glDrawElements(GL_LINE_STRIP, indeces.size() * sizeof(int), GL_UNSIGNED_INT, 0);
 		    glBindVertexArray(0);
 
             glfwSwapBuffers(window);
