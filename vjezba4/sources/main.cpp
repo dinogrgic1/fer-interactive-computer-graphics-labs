@@ -30,7 +30,6 @@ Shader *loadShader(char *path, char *naziv)
     std::string pathVert;
     std::string pathFrag;
 
-
     pathVert.append(path, sPath.find_last_of("\\/") + 1);
     pathFrag.append(path, sPath.find_last_of("\\/") + 1);
     if (pathFrag[pathFrag.size() - 1] == '/')
@@ -85,22 +84,26 @@ int main(int argc, char *argv[])
         aiMesh *mesh = scene->mMeshes[0];
 
         //popis svih tocaka u modelu s x, y, z koordinatama
-        std::vector<std::tuple<float, float, float>> v = std::vector<std::tuple<float, float, float>>();
+        std::vector<glm::vec3> v = std::vector<glm::vec3>();
         for (int i = 0; i < mesh->mNumVertices; i++)
         {
-            std::tuple<float, float, float> t = std::tuple<float, float, float>(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+            glm::vec3 t = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
             v.push_back(t);
         }
 
         //svaki poligon se sastoji od 3 ili vise tocki.
-        std::vector<float> indeces = std::vector<float>();
+        std::vector<int> indeces = std::vector<int>();
         for (int i = 0; i < mesh->mNumFaces; i++)
         {
             for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
                 indeces.push_back(mesh->mFaces[i].mIndices[j]);
         }
 
-        Shader *shader = loadShader(argv[0], "shader");
+        Mesh *m = new Mesh(v, indeces);
+        
+        v = m->getVertices();
+        indeces = m->getIndeces();
+
         GLFWwindow *window;
         glfwInit();
         window = glfwCreateWindow(mWidth, mHeight, "Vjezba 4", nullptr, nullptr);
@@ -116,7 +119,8 @@ int main(int argc, char *argv[])
         gladLoadGL();
         fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
 
-        //generiranje buffera
+        Shader *shader = loadShader(argv[0], "shader");
+
         GLuint VAO;
         GLuint VBO;
         GLuint EBO;
@@ -128,26 +132,28 @@ int main(int argc, char *argv[])
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(v), &v[0], GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+        glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(glm::vec3), &v[0], GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indeces), (void *)(&indeces[0]), GL_STATIC_DRAW);
-        glBindVertexArray(0);
+	    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indeces.size() * sizeof(int), &indeces[0], GL_STATIC_DRAW);
+        
+
+        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
         while (glfwWindowShouldClose(window) == false)
         {
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
 
             glUseProgram(shader->ID);
             glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, sizeof(v), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
+		    glDrawElements(GL_LINE_STRIP, indeces.size(), GL_UNSIGNED_INT, 0);
+		    glBindVertexArray(0);
 
             glfwSwapBuffers(window);
             glfwPollEvents();

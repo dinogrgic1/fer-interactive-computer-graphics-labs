@@ -1,62 +1,111 @@
 #include "Mesh.hpp"
 
-std::tuple<float, float, float, float, float, float> Mesh::getBoundingBox()
+#include <glm/glm.hpp>
+#include <algorithm>
+#include <iostream>
+
+std::pair<glm::vec3, glm::vec3> Mesh::getBoundingBox()
 {
-    float minx, miny, minz;
-    float maxx, maxy, maxz;
+    glm::vec3 min = glm::vec3(this->vertices[0].x, this->vertices[0].y, this->vertices[0].z);
+    glm::vec3 max = glm::vec3(this->vertices[0].x, this->vertices[0].y, this->vertices[0].z);
 
-    minx = maxx = std::get<0>(this->vertices[0]);
-    miny = maxy = std::get<1>(this->vertices[0]);
-    minz = maxz = std::get<2>(this->vertices[0]);
-
-    for(int i = 1; i < this->vertices.size(); i++)
+    for (int i = 1; i < this->vertices.size(); i++)
     {
         float x, y, z;
-        x = std::get<0>(this->vertices[i]);
-        y = std::get<1>(this->vertices[i]);
-        z = std::get<2>(this->vertices[i]);
+        x = this->vertices[i].x;
+        y = this->vertices[i].y;
+        z = this->vertices[i].z;
 
-        if(x < minx)
+        if (x < min.x)
         {
-            minx = x;
+            min.x = x;
         }
 
-        if(x > maxx)
+        if (x > max.x)
         {
-            maxx = x;
+            max.x = x;
         }
 
-        if(y < miny)
+        if (y < min.y)
         {
-            miny = y;
+            min.y = y;
         }
 
-        if(y > maxy)
+        if (y > max.y)
         {
-            maxy = y;
+            max.y = y;
         }
 
-        if(z < minz)
+        if (z < min.z)
         {
-            minz = z;
+            min.z = z;
         }
 
-        if(x > maxx)
+        if (x > max.x)
         {
-            maxz = z;
+            max.z = z;
         }
     }
 
-    return std::tuple<float, float, float, float, float, float>(minx, maxx, miny, maxy, minz, maxz);
+    return std::pair<glm::vec3, glm::vec3>(min, max);
 }
 
-Mesh::Mesh(std::vector<std::tuple<float, float, float>> vertices, std::vector<float> index)
+Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<int> index)
 {
     this->vertices = vertices;
     this->indeces = index;
+    this->applyTransform();
 }
 
-void Mesh::addVertex(std::tuple<float, float, float> t)
+void Mesh::addVertex(glm::vec3 t)
 {
     this->vertices.push_back(t);
+}
+
+void Mesh::applyTransform()
+{
+    std::pair<glm::vec3, glm::vec3> minMax = this->getBoundingBox();
+    glm::vec3 min = minMax.first;
+    glm::vec3 max = minMax.second;
+
+    float x_avg = (min.x + max.x) / 2;
+    float y_avg = (min.y + max.y) / 2;
+    float z_avg = (min.z + max.z) / 2;
+
+    float M = std::max({max.x - min.x, max.y - min.y, max.z - min.z});
+    float factor = 2.0f / M;
+    std::cout << factor << std::endl;
+
+    for (int i = 0; i < this->vertices.size(); i++)
+    {
+        this->vertices[i].x -= x_avg;
+        this->vertices[i].y -= y_avg;
+        this->vertices[i].z -= z_avg;
+
+        this->vertices[i].x *= factor;
+        this->vertices[i].y *= factor;
+        this->vertices[i].z *= factor;
+    }
+}
+
+std::vector<glm::vec3> Mesh::getVertices()
+{
+    return this->vertices;
+    // std::vector<float> v;
+    // for (int i = 0; i < this->vertices.size(); i++)
+    // {
+    //     std::cout << "(" << vertices[i].x << "," << vertices[i].y << "," << vertices[i].z << ")" << std::endl;
+    //     v.push_back(vertices[i].x);
+    //     v.push_back(vertices[i].y);
+    //     v.push_back(vertices[i].z);
+    // }
+    // float *p = &v[0];
+    // return p;
+}
+
+std::vector<int> Mesh::getIndeces() 
+{
+    return this->indeces;
+    // int *p = &(this->indeces[0]);
+    // return p;
 }
