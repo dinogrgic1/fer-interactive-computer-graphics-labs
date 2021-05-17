@@ -21,7 +21,7 @@ glm::vec3 color_picked = glm::vec3(0.6f, 0.4f, 0.0f);
 int color_chosen = 0;
 int to3 = 0;
 int triangles = 0;
-int width = 500, height = 500;
+int width = 800, height = 800;
 
 std::vector<glm::vec3> points;
 std::vector<double> colors;
@@ -88,7 +88,6 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 			to3 = 1;
 			index.push_back(triangles);
 		}
-
 		triangles++;
 	}
 }
@@ -115,17 +114,17 @@ void key_callback(GLFWwindow *window, int key, int scancdoe, int action, int mod
 	if (action == GLFW_PRESS)
 	{
 		float value = 0.00f;
-		if (key == 82)
+		if (key == GLFW_KEY_R)
 		{
 			std::cout << "==========Red color component chosen==========" << std::endl;
 			color_chosen = 0;
 		}
-		else if (key == 71)
+		else if (key == GLFW_KEY_G)
 		{
 			std::cout << "==========Green color component chosen==========" << std::endl;
 			color_chosen = 1;
 		}
-		else if (key == 66)
+		else if (key == GLFW_KEY_B)
 		{
 			std::cout << "==========Blue color component chosen==========" << std::endl;
 			color_chosen = 2;
@@ -229,14 +228,6 @@ int main(int argc, char *argv[])
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(int), &index[0], GL_DYNAMIC_DRAW);
 	glBindVertexArray(0);
 
-	/*********************************************************************************************/
-	//"instanciranje objekata" svaka matrica reprezentira novu instancu objekta. Izrada polja transformacija koji  postavljaju objekte u mrezu 4x4
-
-	glm::mat4 jedinicna = glm::mat4(1);
-	glm::mat4 poljeTransformacija[50];
-
-	/*********************************************************************************************/
-	//glavna petlja za prikaz
 	while (glfwWindowShouldClose(window) == false)
 	{
 

@@ -1,65 +1,58 @@
 #include "Mesh.hpp"
+#include "Transform.hpp"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <glm/glm.hpp>
 #include <algorithm>
 #include <iostream>
 
+void Mesh::setMax(glm::vec3 vertex)
+{
+    this->max.x = (vertex.x > this->min.x) ? vertex.x : this->max.x;
+    this->max.y = (vertex.y > this->min.y) ? vertex.y : this->max.y;
+    this->max.z = (vertex.z > this->min.z) ? vertex.z : this->max.z;
+}
+
+void Mesh::setMin(glm::vec3 vertex)
+{
+    this->min.x = (vertex.x < this->min.x) ? vertex.x : this->min.x;
+    this->min.y = (vertex.y < this->min.y) ? vertex.y : this->min.y;
+    this->min.z = (vertex.z < this->min.z) ? vertex.z : this->min.z;
+}
+
 std::pair<glm::vec3, glm::vec3> Mesh::getBoundingBox()
 {
-    glm::vec3 min = glm::vec3(this->vertices[0].x, this->vertices[0].y, this->vertices[0].z);
-    glm::vec3 max = glm::vec3(this->vertices[0].x, this->vertices[0].y, this->vertices[0].z);
+    return std::make_pair(this->min, this->max);
+}
 
-    for (int i = 1; i < this->vertices.size(); i++)
+Mesh::Mesh(aiMesh *mesh)
+{
+    glm::vec3 t = glm::vec3(mesh->mVertices[0].x, mesh->mVertices[0].y, mesh->mVertices[0].z);
+    this->min = this->max = glm::vec3(t);
+    
+    this->vertices = std::vector<glm::vec3>();
+    this->vertices.push_back(t);
+    for (int i = 1; i < mesh->mNumVertices; i++)
     {
-        float x, y, z;
-        x = this->vertices[i].x;
-        y = this->vertices[i].y;
-        z = this->vertices[i].z;
-
-        if (x < min.x)
-        {
-            min.x = x;
-        }
-
-        if (x > max.x)
-        {
-            max.x = x;
-        }
-
-        if (y < min.y)
-        {
-            min.y = y;
-        }
-
-        if (y > max.y)
-        {
-            max.y = y;
-        }
-
-        if (z < min.z)
-        {
-            min.z = z;
-        }
-
-        if (x > max.x)
-        {
-            max.z = z;
-        }
+        t = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+        this->vertices.push_back(t);
+        this->setMin(t);    this->setMax(t);
     }
 
-    return std::pair<glm::vec3, glm::vec3>(min, max);
-}
-
-Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<int> index)
-{
-    this->vertices = vertices;
-    this->indeces = index;
+    this->indeces = std::vector<int>();
+    for (int i = 0; i < mesh->mNumFaces; i++)
+    {
+        for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+            this->indeces.push_back(mesh->mFaces[i].mIndices[j]);
+    }
     this->applyTransform();
-}
-
-void Mesh::addVertex(glm::vec3 t)
-{
-    this->vertices.push_back(t);
 }
 
 void Mesh::applyTransform()
@@ -73,39 +66,26 @@ void Mesh::applyTransform()
     float z_avg = (min.z + max.z) / 2;
 
     float M = std::max({max.x - min.x, max.y - min.y, max.z - min.z});
-    float factor = 2.0f / M;
-    std::cout << factor << std::endl;
+    glm::mat4 scaleMatrix = Transform::scale3D(glm::vec3(M, M, M));
+    glm::mat4 translationMatrix = Transform::translate3D(glm::vec3(-x_avg, -y_avg, -z_avg));
 
     for (int i = 0; i < this->vertices.size(); i++)
     {
-        this->vertices[i].x -= x_avg;
-        this->vertices[i].y -= y_avg;
-        this->vertices[i].z -= z_avg;
+        glm::vec4 curr = glm::vec4(vertices[i], 1.0f);
+        curr = scaleMatrix * translationMatrix * curr;
 
-        this->vertices[i].x *= factor;
-        this->vertices[i].y *= factor;
-        this->vertices[i].z *= factor;
+        this->vertices[i].x = curr.x;
+        this->vertices[i].y = curr.y;
+        this->vertices[i].z = curr.z;
     }
 }
 
 std::vector<glm::vec3> Mesh::getVertices()
 {
     return this->vertices;
-    // std::vector<float> v;
-    // for (int i = 0; i < this->vertices.size(); i++)
-    // {
-    //     std::cout << "(" << vertices[i].x << "," << vertices[i].y << "," << vertices[i].z << ")" << std::endl;
-    //     v.push_back(vertices[i].x);
-    //     v.push_back(vertices[i].y);
-    //     v.push_back(vertices[i].z);
-    // }
-    // float *p = &v[0];
-    // return p;
 }
 
-std::vector<int> Mesh::getIndeces() 
+std::vector<int> Mesh::getIndeces()
 {
     return this->indeces;
-    // int *p = &(this->indeces[0]);
-    // return p;
 }

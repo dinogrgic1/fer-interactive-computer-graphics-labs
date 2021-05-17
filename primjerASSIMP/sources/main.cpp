@@ -56,8 +56,7 @@ int main(int argc, char * argv[]) {
 			std::cout << i << std::endl;
 			std::cout << mesh->mVertices[i].x << " " << mesh->mVertices[i].y << " " << mesh->mVertices[i].z << std::endl;
 		}
-			
-		
+					
 		std::cout << "prvih 10 uv koordinata na teksturi" << std::endl;
 		//popis svih koordinata u texturi u modelu s u,v koordinatama 
 		for (int i = 0; i < 10 && i < mesh->mVertices->Length(); i++)

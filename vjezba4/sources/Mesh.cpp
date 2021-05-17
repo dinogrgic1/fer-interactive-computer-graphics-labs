@@ -1,5 +1,9 @@
 #include "Mesh.hpp"
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <glm/glm.hpp>
 #include <algorithm>
 #include <iostream>
@@ -73,39 +77,40 @@ void Mesh::applyTransform()
     float z_avg = (min.z + max.z) / 2;
 
     float M = std::max({max.x - min.x, max.y - min.y, max.z - min.z});
-    float factor = 2.0f / M;
-    std::cout << factor << std::endl;
+    float scale[16] =
+    {
+        2.0f / M,   0.0f,       0.0f,       0.0f,
+        0.0f,       2.0f / M,   0.0f,       0.0f,
+        0.0f,       0.0f,       2.0f / M,   0.0f,
+        0.0f,       0.0f,       0.0f,       1.0f
+    };
+    glm::mat4 scaleMatrix = glm::make_mat4(scale);
+
+    float translation[16] =
+    {
+        1.0f,   0.0f,   0.0f,   0.0f,
+        0.0f,   1.0f,   0.0f,   0.0f,
+        0.0f,   0.0f,   1.0f,   0.0f,
+        -x_avg,  -y_avg,  -z_avg, 1.0f
+    };
+    glm::mat4 translationMatrix = glm::make_mat4(translation);
 
     for (int i = 0; i < this->vertices.size(); i++)
     {
-        this->vertices[i].x -= x_avg;
-        this->vertices[i].y -= y_avg;
-        this->vertices[i].z -= z_avg;
+        glm::vec4 curr = glm::vec4(vertices[i], 1.0f);
+        curr = scaleMatrix * translationMatrix * curr;
 
-        this->vertices[i].x *= factor;
-        this->vertices[i].y *= factor;
-        this->vertices[i].z *= factor;
+        this->vertices[i].x = curr.x;
+        this->vertices[i].y = curr.y;
+        this->vertices[i].z = curr.z;
     }
 }
 
 std::vector<glm::vec3> Mesh::getVertices()
 {
     return this->vertices;
-    // std::vector<float> v;
-    // for (int i = 0; i < this->vertices.size(); i++)
-    // {
-    //     std::cout << "(" << vertices[i].x << "," << vertices[i].y << "," << vertices[i].z << ")" << std::endl;
-    //     v.push_back(vertices[i].x);
-    //     v.push_back(vertices[i].y);
-    //     v.push_back(vertices[i].z);
-    // }
-    // float *p = &v[0];
-    // return p;
 }
-
-std::vector<int> Mesh::getIndeces() 
+std::vector<int> Mesh::getIndeces()
 {
     return this->indeces;
-    // int *p = &(this->indeces[0]);
-    // return p;
 }

@@ -1,5 +1,6 @@
 // Local Headers
-#include "Mesh.hpp"
+#include "Shader.h"
+#include "Object.hpp"
 
 // System Headers
 #include <glad/glad.h>
@@ -7,8 +8,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include "Shader.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -18,10 +17,15 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
-
 #include <iostream>
 
-int width = 900, height = 600;
+std::vector<Object*> objects;
+
+int width = 900, height = 900;
+glm::mat4 view = glm::lookAt(glm::vec3(3.0f, 4.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+glm::mat4 model1 = glm::mat4(1.0f);
+glm::mat4 model2 = glm::mat4(1.0f);
 
 Shader *loadShader(char *path, char *naziv)
 {
@@ -30,7 +34,6 @@ Shader *loadShader(char *path, char *naziv)
 	std::string pathFrag;
 
 	//malo je nespretno napravljeno jer ne koristimo biblioteku iz c++17, a treba podrzati i windows i linux
-
 	pathVert.append(path, sPath.find_last_of("\\/") + 1);
 	pathFrag.append(path, sPath.find_last_of("\\/") + 1);
 	if (pathFrag[pathFrag.size() - 1] == '/')
@@ -63,10 +66,51 @@ void framebuffer_size_callback(GLFWwindow *window, int Width, int Height)
 	height = Height;
 }
 
+void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
+{
+	float deltaX = (width) / 2 - xpos;
+	float deltaY = (height) / 2 - ypos;
+	view = glm::rotate(view, 0.001f * deltaX, glm::vec3(1.0f, 0.0f, 0.0f));
+	view = glm::rotate(view, 0.001f * deltaY, glm::vec3(0.0f, 1.0f, 0.0f));
+	glfwSetCursorPos(window, (width) / 2, (height) / 2);
+}
+
+void key_callback(GLFWwindow *window, int key, int scancdoe, int action, int mods)
+{
+	if (action == GLFW_PRESS)
+	{
+		glm::vec3 tmp = glm::vec3(0.0f, 0.0f, 0.0f);
+		switch(key)
+		{
+			case GLFW_KEY_W:
+				tmp.z = -1.0f;
+				break;
+			case GLFW_KEY_S:
+				tmp.z = 1.0f;
+				break;
+			case GLFW_KEY_A:
+				tmp.x = -1.0f;
+				break;
+			case GLFW_KEY_D:
+				tmp.x = 1.0f;
+				break;
+			case GLFW_KEY_E:
+				tmp.y = -1.0f;
+				break;
+			case GLFW_KEY_Q:
+				tmp.y = 1.0f;
+				break;
+		}
+		for(int i = 0; i < objects.size(); i++)
+		{
+			objects[i]->transform->setPosition(tmp);
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	Assimp::Importer importer;
-
 	std::string path(argv[0]);
 	std::string dirPath(path, 0, path.find_last_of("\\/"));
 	std::string resPath(dirPath);
@@ -89,31 +133,18 @@ int main(int argc, char *argv[])
 	if (scene->HasMeshes())
 	{
 		aiMesh *mesh = scene->mMeshes[0];
+		Mesh *m = new Mesh(mesh);
 
-		//popis svih tocaka u modelu s x, y, z koordinatama
-		std::vector<glm::vec3> v = std::vector<glm::vec3>();
-		for (int i = 0; i < mesh->mNumVertices; i++)
-		{
-			glm::vec3 t = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-			v.push_back(t);
-		}
+		objects.push_back(new Object(m, new Transform(0.0f, 0.0f, 1.5f)));
+		objects.push_back(new Object(m, new Transform(0.5f, 0.0f, -1.5f)));
 
-		//svaki poligon se sastoji od 3 ili vise tocki.
-		std::vector<int> indeces = std::vector<int>();
-		for (int i = 0; i < mesh->mNumFaces; i++)
-		{
-			for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
-				indeces.push_back(mesh->mFaces[i].mIndices[j]);
-		}
-
-		Mesh *m = new Mesh(v, indeces);
-		
-		v = m->getVertices();
-        indeces = m->getIndeces();
+		std::vector<glm::vec3> v = m->getVertices();
+		std::vector<int> indeces = m->getIndeces();
 
 		GLFWwindow *window;
-
 		glfwInit();
+		gladLoadGL();
+		glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
 		window = glfwCreateWindow(width, height, "Vjezba 5a", nullptr, nullptr);
 
@@ -129,72 +160,75 @@ int main(int argc, char *argv[])
 		gladLoadGL();
 
 		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); //funkcija koja se poziva prilikom mijenjanja velicine prozora
+		glfwSetKeyCallback(window, key_callback);
+		glfwSetCursorPosCallback(window, cursor_position_callback);
 
 		fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
 
 		glClearColor(0.15, 0.1, 0.1, 1);
 
 		//generiranje buffera
+		// TODO: generiraj buffere po broju inicjaliziranih objekata
 		GLuint VAO;
-		GLuint VBO;
-		GLuint EBO;
+		GLuint VBO[2];
+		GLuint EBO[2];
 
 		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &EBO);
+		glGenBuffers(2, VBO);
+		glGenBuffers(2, EBO);
 
-        glBindVertexArray(VAO);
+		glBindVertexArray(VAO);
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(glm::vec3), &v[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+		glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(glm::vec3), &v[0], GL_STATIC_DRAW);
 
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+		glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(glm::vec3), &v[0], GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indeces.size() * sizeof(int), &indeces[0], GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-		/*********************************************************************************************/
-		//primjer 4a
-		//instanciranje istog "objekta" preko uniforme varijable, u odnosu na primjer 3 promijenio se samo shader i uvela dodatna uniform varijabla
-		Shader *shader = loadShader(argv[0], "shader2");
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indeces.size() * sizeof(int), &indeces[0], GL_STATIC_DRAW);
 
-		GLint lokacijaUniformVarijable2 = glGetUniformLocation(shader->ID, "tMatrica");
-
-		//izrada polja transformacija koji  postavljaju objekte u mrezu 4x4
-		glm::mat4 jedinicna = glm::mat4(1);
-		glm::mat4 skaliranje = glm::scale(jedinicna, glm::vec3(1, 1, 1));
-		glm::mat4 poljeTransformacija[16];
-		int brojac = 0;
-		for (float i = -1; i < 1; i += 0.5)
-		{
-			for (float j = -1; j < 1; j += 0.5)
-			{
-				poljeTransformacija[brojac++] = glm::translate(jedinicna, glm::vec3(j + 0.5, i + 0.5, 0)) * skaliranje;
-			}
-		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[1]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indeces.size() * sizeof(int), &indeces[0], GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
-		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+		glBindVertexArray(1);
+
+		Shader *shader = loadShader(argv[0], "shader2");
+		GLint uniformProj = glGetUniformLocation(shader->ID, "matProjection");
+		GLint uniformView = glGetUniformLocation(shader->ID, "matView");
+		GLint uniformModel = glGetUniformLocation(shader->ID, "matModel");
+
+		float offset = 0.5f;
+		float nearPlane = 1.0f;
+		float farPlane = 100.0f;
+
+		glm::mat4 projection = glm::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
+		glClearColor(0.80f, 0.80f, 0.80f, 0.0f);
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		glfwSetCursorPos(window, (width) / 2, (height) / 2);
 
 		while (glfwWindowShouldClose(window) == false)
 		{
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 				glfwSetWindowShouldClose(window, true);
 
-			/********************************************************/
-			//primjer 4a
-			//za svaku instancu objekta saljemo naredbu za iscrtavanje. podaci o modelu ostaju na grafickoj, mijenja se samo uniform varijabla.
 			glUseProgram(shader->ID);
 			glBindVertexArray(VAO);
 
-			for (int i = 0; i < 16; i++)
+			glUniformMatrix4fv(uniformProj, 1, GL_FALSE, &projection[0][0]);
+			glUniformMatrix4fv(uniformView, 1, GL_FALSE, &view[0][0]);
+			
+			for(int i = 0; i < objects.size(); i++)
 			{
-				glUniformMatrix4fv(lokacijaUniformVarijable2, 1, GL_FALSE, &poljeTransformacija[i][0][0]);
-				glDrawElements(GL_LINE_STRIP, indeces.size(), GL_UNSIGNED_INT, 0);
+				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, &(objects[i]->transform->modelMatrix[0][0]));
+				glDrawElements(GL_LINE_LOOP, indeces.size(), GL_UNSIGNED_INT, 0);
 			}
 
 			glBindVertexArray(0);
@@ -205,8 +239,8 @@ int main(int argc, char *argv[])
 
 		delete shader;
 
-		glDeleteBuffers(1, &VBO);
-		glDeleteBuffers(1, &EBO);
+		glDeleteBuffers(2, VBO);
+		glDeleteBuffers(2, EBO);
 		glDeleteVertexArrays(1, &VAO);
 
 		glfwTerminate();

@@ -65,7 +65,8 @@ int main(int argc, char *argv[])
     std::string resPath(dirPath);
     resPath.append("/resources"); //za linux pretvoriti u forwardslash
     std::string objPath(resPath);
-    objPath.append("/teapot/teapot.obj"); //za linux pretvoriti u forwardslash
+    objPath.append("/teapot.obj"); //za linux pretvoriti u forwardslash
+    //objPath.append("/teddy.obj");
 
     const aiScene *scene = importer.ReadFile(objPath.c_str(),
                                              aiProcess_CalcTangentSpace |
@@ -106,6 +107,8 @@ int main(int argc, char *argv[])
 
         GLFWwindow *window;
         glfwInit();
+		gladLoadGL();
+		glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
         window = glfwCreateWindow(mWidth, mHeight, "Vjezba 4", nullptr, nullptr);
 
         if (window == nullptr)
@@ -139,7 +142,6 @@ int main(int argc, char *argv[])
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indeces.size() * sizeof(int), &indeces[0], GL_STATIC_DRAW);
-        
 
         glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
@@ -152,7 +154,8 @@ int main(int argc, char *argv[])
 
             glUseProgram(shader->ID);
             glBindVertexArray(VAO);
-		    glDrawElements(GL_LINE_STRIP, indeces.size() * sizeof(int), GL_UNSIGNED_INT, 0);
+		    glDrawElements(GL_LINE_LOOP, indeces.size() * sizeof(int), GL_UNSIGNED_INT, 0);
+            //glDrawElements(GL_LINE_STRIP, indeces.size() * sizeof(int), GL_UNSIGNED_INT, 0);
 		    glBindVertexArray(0);
 
             glfwSwapBuffers(window);
