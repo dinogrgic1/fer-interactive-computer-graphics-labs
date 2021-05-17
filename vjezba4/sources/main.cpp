@@ -29,18 +29,22 @@ Shader *loadShader(char *path, char *naziv)
     std::string sPath(path);
     std::string pathVert;
     std::string pathFrag;
+    std::string pathGeom;
 
     pathVert.append(path, sPath.find_last_of("\\/") + 1);
     pathFrag.append(path, sPath.find_last_of("\\/") + 1);
+    pathGeom.append(path, sPath.find_last_of("\\/") + 1);
     if (pathFrag[pathFrag.size() - 1] == '/')
     {
         pathVert.append("shaders/");
         pathFrag.append("shaders/");
+        pathGeom.append("shaders/");
     }
     else if (pathFrag[pathFrag.size() - 1] == '\\')
     {
         pathVert.append("shaders\\");
         pathFrag.append("shaders\\");
+        pathGeom.append("shaders\\");
     }
     else
     {
@@ -52,8 +56,10 @@ Shader *loadShader(char *path, char *naziv)
     pathVert.append(".vert");
     pathFrag.append(naziv);
     pathFrag.append(".frag");
+    pathGeom.append(naziv);
+    pathGeom.append(".geom");
 
-    return new Shader(pathVert.c_str(), pathFrag.c_str());
+    return new Shader(pathVert.c_str(), pathFrag.c_str(), pathGeom.c_str());
 }
 
 int main(int argc, char *argv[])
@@ -122,7 +128,7 @@ int main(int argc, char *argv[])
         gladLoadGL();
         fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
 
-        Shader *shader = loadShader(argv[0], "shader");
+        Shader *shader = loadShader(argv[0], "shader2");
 
         GLuint VAO;
         GLuint VBO;
@@ -131,9 +137,9 @@ int main(int argc, char *argv[])
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
+        
 
         glBindVertexArray(VAO);
-
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(glm::vec3), &v[0], GL_STATIC_DRAW);
 
@@ -154,7 +160,7 @@ int main(int argc, char *argv[])
 
             glUseProgram(shader->ID);
             glBindVertexArray(VAO);
-		    glDrawElements(GL_LINE_LOOP, indeces.size() * sizeof(int), GL_UNSIGNED_INT, 0);
+		    glDrawElements(GL_TRIANGLES, indeces.size(), GL_UNSIGNED_INT, 0);
             //glDrawElements(GL_LINE_STRIP, indeces.size() * sizeof(int), GL_UNSIGNED_INT, 0);
 		    glBindVertexArray(0);
 
@@ -162,6 +168,10 @@ int main(int argc, char *argv[])
             glfwPollEvents();
         }
 
+        glDeleteBuffers(1, &VBO);
+		glDeleteBuffers(1, &EBO);
+		glDeleteVertexArrays(1, &VAO);
         glfwTerminate();
+        return EXIT_SUCCESS;
     }
 }

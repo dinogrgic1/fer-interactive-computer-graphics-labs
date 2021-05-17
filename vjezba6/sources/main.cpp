@@ -19,18 +19,21 @@
 #include <vector>
 #include <iostream>
 
+#define GL_CULLING 0
+
 std::vector<Object *> objects;
 
 int width = 900, height = 900;
 float offset = 0.5f;
 float nearPlane = 1.0f;
-float farPlane = 100.0f;
+float farPlane = 1000.0f;
 
 //glm::mat4 projection = glm::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 glm::mat4 projection = Transform::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 
-//glm::mat4 view = glm::lookAt(glm::vec3(5.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-glm::mat4 view = Transform::lookAtMatrix(glm::vec3(0.75f, 0.75f, 0.75f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+glm::vec3 camera = glm::vec3(0.75f, 0.75f, 0.75f);
+//glm::mat4 view = glm::lookAt(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+glm::mat4 view = Transform::lookAtMatrix(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 Shader *loadShader(char *path, char *naziv)
 {
@@ -81,8 +84,10 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
 	float deltaX = (width) / 2 - xpos;
 	float deltaY = (height) / 2 - ypos;
-	view = glm::rotate(view, 0.001f * deltaX, glm::vec3(1.0f, 0.0f, 0.0f));
-	view = glm::rotate(view, 0.001f * deltaY, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	camera += glm::vec3(0.001f * deltaX, 0.0f, 0.0f);
+	camera += glm::vec3(0.0f, 0.001f * deltaY, 0.0f);
+	view = Transform::lookAtMatrix(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	glfwSetCursorPos(window, (width) / 2, (height) / 2);
 }
 
@@ -94,22 +99,22 @@ void key_callback(GLFWwindow *window, int key, int scancdoe, int action, int mod
 		switch (key)
 		{
 		case GLFW_KEY_W:
-			tmp.z = -1.0f;
+			tmp.z = -0.1f;
 			break;
 		case GLFW_KEY_S:
-			tmp.z = 1.0f;
+			tmp.z = 0.1f;
 			break;
 		case GLFW_KEY_A:
-			tmp.x = -1.0f;
+			tmp.x = -0.1f;
 			break;
 		case GLFW_KEY_D:
-			tmp.x = 1.0f;
+			tmp.x = 0.1f;
 			break;
 		case GLFW_KEY_E:
-			tmp.y = -1.0f;
+			tmp.y = -0.1f;
 			break;
 		case GLFW_KEY_Q:
-			tmp.y = 1.0f;
+			tmp.y = 0.1f;
 			break;
 		}
 		for (int i = 0; i < objects.size(); i++)
@@ -147,17 +152,16 @@ int main(int argc, char *argv[])
 		aiMesh *mesh = scene->mMeshes[0];
 		Mesh *m = new Mesh(mesh);
 
-		objects.push_back(new Object(m, new Transform(-0.25f, 0.0f, 0.0f)));
-		objects.push_back(new Object(m, new Transform(0.25f, 0.0f, 0.0f)));
+		objects.push_back(new Object(m, new Transform(0.0f, 0.0f, 0.0f)));
+		//objects.push_back(new Object(m, new Transform(0.0f, -0.5f, 0.0f)));
 
 		std::vector<glm::vec3> v = m->getVertices();
 		std::vector<int> indeces = m->getIndeces();
 
 		GLFWwindow *window;
-
 		glfwInit();
 
-		window = glfwCreateWindow(width, height, "Vjezba 5a", nullptr, nullptr);
+		window = glfwCreateWindow(width, height, "Vjezba 6", nullptr, nullptr);
 
 		// Check for Valid Context
 		if (window == nullptr)
@@ -208,11 +212,19 @@ int main(int argc, char *argv[])
 		glBindVertexArray(0);
 		glBindVertexArray(1);
 
+#if GL_CULLING == 1
+		Shader *shader = loadShader(argv[0], "shader");
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+#else
 		Shader *shader = loadShader(argv[0], "shader2");
+#endif
+
 		GLint uniformProj = glGetUniformLocation(shader->ID, "matProjection");
 		GLint uniformView = glGetUniformLocation(shader->ID, "matView");
 		GLint uniformModel = glGetUniformLocation(shader->ID, "matModel");
-		//GLint uniformModel = glGetUniformLocation(shader->ID, "matModel");
+		GLint eyeView = glGetUniformLocation(shader->ID, "eyeView");
 
 		glClearColor(0.80f, 0.80f, 0.80f, 0.0f);
 
@@ -231,6 +243,7 @@ int main(int argc, char *argv[])
 
 			glUniformMatrix4fv(uniformProj, 1, GL_FALSE, &projection[0][0]);
 			glUniformMatrix4fv(uniformView, 1, GL_FALSE, &view[0][0]);
+			glUniform3fv(eyeView, 1, &camera[0]);
 
 			for (int i = 0; i < objects.size(); i++)
 			{
@@ -241,6 +254,7 @@ int main(int argc, char *argv[])
 			glBindVertexArray(0);
 
 			glfwSwapBuffers(window);
+
 			glfwPollEvents();
 		}
 

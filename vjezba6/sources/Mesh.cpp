@@ -47,24 +47,14 @@ Mesh::Mesh(aiMesh *mesh)
         this->setMax(t);
     }
 
+
     this->indeces = std::vector<int>();
     this->normals = std::vector<glm::vec3>();
     for (int i = 0; i < mesh->mNumFaces; i++)
     {
-        int first = mesh->mFaces[i].mIndices[0];
-        int second = mesh->mFaces[i].mIndices[1];
-        int third = mesh->mFaces[i].mIndices[2];
-
         this->indeces.push_back(mesh->mFaces[i].mIndices[0]);
         this->indeces.push_back(mesh->mFaces[i].mIndices[1]);
         this->indeces.push_back(mesh->mFaces[i].mIndices[2]);
-
-        glm::vec3 v_x = glm::vec3(mesh->mNormals[first].x, mesh->mNormals[first].y, mesh->mNormals[first].z);
-        glm::vec3 v_x1 = glm::vec3(mesh->mNormals[second].x, mesh->mNormals[second].y, mesh->mNormals[second].z);
-        glm::vec3 v_x2 = glm::vec3(mesh->mNormals[third].x, mesh->mNormals[third].y, mesh->mNormals[third].z);
-
-        glm::vec3 normal = glm::cross((v_x1 - v_x), (v_x2 - v_x));
-        this->normals.push_back(normal);
     }
     this->applyTransform();
 }

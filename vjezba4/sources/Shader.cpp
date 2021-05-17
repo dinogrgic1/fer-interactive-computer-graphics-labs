@@ -21,32 +21,38 @@ void Shader::checkCompilerErrors(unsigned int shader, std::string type)
 	}
 }
 
-Shader::Shader(const char * vertexPath, const char * fragmentPath)
+Shader::Shader(const char *vertexPath, const char *fragmentPath, const char* geometryPath)
 {
 	//std::cout << vertexPath << std::endl;
 	std::string vertexCode;
 	std::string fragmentCode;
+	std::string geometryCode;
 	std::ifstream vShaderFile;
 	std::ifstream fShaderFile;
+	std::ifstream gShaderFile;
 	// ensure ifstream objects can throw exceptions:
 	vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
+	gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	try
 	{
 		// open files
 		vShaderFile.open(vertexPath);
 		fShaderFile.open(fragmentPath);
-		std::stringstream vShaderStream, fShaderStream;
+		gShaderFile.open(geometryPath);
+		std::stringstream vShaderStream, fShaderStream, gShaderStream;
 		// read file's buffer contents into streams
 		vShaderStream << vShaderFile.rdbuf();
 		fShaderStream << fShaderFile.rdbuf();
+		gShaderStream << gShaderFile.rdbuf();
 		// close file handlers
 		vShaderFile.close();
 		fShaderFile.close();
+		gShaderFile.close();
 		// convert stream into string
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
+		geometryCode = gShaderStream.str();
 	}
 	catch (std::ifstream::failure e)
 	{
@@ -56,8 +62,9 @@ Shader::Shader(const char * vertexPath, const char * fragmentPath)
 
 	const char* vShaderCode = vertexCode.c_str();
 	const char* fShaderCode = fragmentCode.c_str();
+	const char* gShaderCode = geometryCode.c_str();
 	// 2. compile shaders
-	unsigned int vertex, fragment;
+	unsigned int vertex, geometry, fragment;
 	int success;
 	char infoLog[512];
 
@@ -66,6 +73,12 @@ Shader::Shader(const char * vertexPath, const char * fragmentPath)
 	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
 	checkCompilerErrors(vertex, "VERTEX");
+
+	// geometry shader
+	geometry = glCreateShader(GL_GEOMETRY_SHADER);
+	glShaderSource(geometry, 1, &gShaderCode, NULL);
+	glCompileShader(geometry);
+	checkCompilerErrors(geometry, "GEOMETRY");
 
 	// fragment Shader
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -76,12 +89,14 @@ Shader::Shader(const char * vertexPath, const char * fragmentPath)
 	// shader Program
 	ID = glCreateProgram();
 	glAttachShader(ID, vertex);
+	glAttachShader(ID, geometry);
 	glAttachShader(ID, fragment);
 	glLinkProgram(ID);
 	checkCompilerErrors(ID, "PROGRAM");
 
 	// delete the shaders as they're linked into our program now and no longer necessary
 	glDeleteShader(vertex);
+	glDeleteShader(geometry);
 	glDeleteShader(fragment);
 
 }

@@ -212,6 +212,11 @@ int main(int argc, char *argv[])
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		glfwSetCursorPos(window, (width) / 2, (height) / 2);
 
+		std::cout << view[0][0] << "\t" << view[0][1] << "\t" << view[0][2] << "\t" << view[0][3] << std::endl;
+		std::cout << view[1][0] << "\t" << view[1][1] << "\t" << view[1][2] << "\t" << view[1][3] << std::endl;
+		std::cout << view[2][0] << "\t" << view[2][1] << "\t" << view[2][2] << "\t" << view[2][3] << std::endl;
+		std::cout << view[3][0] << "\t" << view[3][1] << "\t" << view[3][2] << "\t" << view[3][3] << std::endl;
+
 		while (glfwWindowShouldClose(window) == false)
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
