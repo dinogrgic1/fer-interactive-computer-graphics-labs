@@ -12,6 +12,7 @@ class Mesh
     private:
         std::vector<glm::vec3> vertices;
         std::vector<glm::vec3> normals;
+        std::vector<glm::vec2> textureCords;
         std::vector<int> indeces;
         glm::vec3 min;
         glm::vec3 max;

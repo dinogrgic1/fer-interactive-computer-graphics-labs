@@ -38,14 +38,16 @@ Mesh::Mesh(aiMesh *mesh)
     this->min = this->max = glm::vec3(t);
 
     this->normals = std::vector<glm::vec3>();
-    this->normals.push_back(glm::vec3(mesh->mNormals[0].x, mesh->mNormals[0].y, mesh->mNormals[0].z));
-
+    if(mesh->mNormals->Length() != 0)
+        this->normals.push_back(glm::vec3(mesh->mNormals[0].x, mesh->mNormals[0].y, mesh->mNormals[0].z));
+    
     this->vertices = std::vector<glm::vec3>();
     this->vertices.push_back(t);
     for (int i = 1; i < mesh->mNumVertices; i++)
     {
         t = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-        this->normals.push_back(glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z));
+        if(mesh->mNormals->Length() != 0)
+            this->normals.push_back(glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z));
         this->vertices.push_back(t);
         this->setMin(t);
         this->setMax(t);
@@ -58,6 +60,28 @@ Mesh::Mesh(aiMesh *mesh)
         this->indeces.push_back(mesh->mFaces[i].mIndices[0]);
         this->indeces.push_back(mesh->mFaces[i].mIndices[1]);
         this->indeces.push_back(mesh->mFaces[i].mIndices[2]);
+    }
+
+    // calculate vertex normlas if they are not defined in .obj
+    if (this->normals.size() == 0)
+    {
+        for (int i = 1; i <= this->vertices.size(); i++)
+        {
+            glm::vec3 tmp = glm::vec3();
+            for (int j = 0; j < this->indeces.size(); j = j + 3)
+            {
+                if (this->indeces[j] == i || this->indeces[j + 1] == i || this->indeces[j + 2] == i)
+                {
+                    glm::vec3 v_x = this->vertices[this->indeces[j] - 1];
+                    glm::vec3 v_x1 = this->vertices[this->indeces[j + 1] - 1];
+                    glm::vec3 v_x2 = this->vertices[this->indeces[j + 2] - 1];
+
+                    glm::vec3 normal = glm::cross((v_x1 - v_x), (v_x2, v_x));
+                    tmp += normal;
+                }
+            }
+            this->normals.push_back(glm::normalize(tmp));
+        }
     }
 
     this->textureCords = std::vector<glm::vec2>();

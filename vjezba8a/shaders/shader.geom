@@ -32,9 +32,9 @@ void main() {
     float coef = dot(toSource, vec4(normal, 1.0f));
     float coef2 = dot(toSourceReflect, vec4(eyeView, 1.0f));
 
-    float Ir = (light[0][0] * materialProps[0][0]) + (light[1][0] * materialProps[1][0]) * coef + (light[2][0] * materialProps[2][0]) * coef2;
-    float Ig = (light[0][1] * materialProps[0][1]) + (light[1][1] * materialProps[1][1]) * coef + (light[2][1] * materialProps[2][1]) * coef2;
-    float Ib = (light[0][2] * materialProps[0][2]) + (light[1][2] * materialProps[1][0]) * coef + (light[2][2] * materialProps[2][2]) * coef2;
+    float Ir = (light[0][0] * materialProps[0][0]) + (light[1][0] * materialProps[1][0]) * coef + (light[2][0] * materialProps[2][0]) * pow(coef2, 2.0f);
+    float Ig = (light[0][1] * materialProps[0][1]) + (light[1][1] * materialProps[1][1]) * coef + (light[2][1] * materialProps[2][1]) * pow(coef2, 2.0f);
+    float Ib = (light[0][2] * materialProps[0][2]) + (light[1][2] * materialProps[1][0]) * coef + (light[2][2] * materialProps[2][2]) * pow(coef2, 2.0f);
 
     frag.color = vec4(objColor.x + 0.1f * Ir, objColor.y * Ig, objColor.z * Ib, 0.0f);
     frag.normal = normal;

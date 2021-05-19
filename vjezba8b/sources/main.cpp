@@ -28,14 +28,12 @@ float offset = 0.5f;
 float nearPlane = 1.0f;
 float farPlane = 100.0f;
 
-
-
 Mesh *m;
 glm::mat4 projection = glm::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 //glm::mat4 projection = Transform::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 
 glm::vec3 camera = glm::vec3(0.0f, 0.5f, 2.0f);
-glm::vec4 lightPos = glm::vec4(0.0f, 5.0f, 0.0f, 1.0f);
+glm::vec4 lightPos = glm::vec4(0.0f, 0.0f, 2.0f, 1.0f);
 Light light = Light(lightPos.x, lightPos.y, lightPos.z, 0.3f, 0.3f, 0.3f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
 glm::mat4 view = glm::lookAt(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -121,9 +119,6 @@ void key_callback(GLFWwindow *window, int key, int scancdoe, int action, int mod
 		for (size_t i = 0; i < objects.size(); i++)
 		{
 			objects[i]->transform->setPosition(tmp);
-			for(int j = 0; j < m->normals.size(); j++) {
-				m->normals[j] += tmp;
-			}
 		}
 	}
 }
@@ -218,8 +213,6 @@ int main(int argc, char *argv[])
 		glBindVertexArray(0);
 		glBindVertexArray(1);
 
-		std::cout << vecNorm.size() << std::endl;
-		std::cout << v.size() << std::endl;
 		Shader *shader = loadShader(argv[0], "shader");
 
 		GLint uniformProj = glGetUniformLocation(shader->ID, "matProjection");

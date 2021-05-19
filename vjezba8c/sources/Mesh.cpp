@@ -52,12 +52,34 @@ Mesh::Mesh(aiMesh *mesh)
     }
 
     this->indeces = std::vector<int>();
-    
+
     for (int i = 0; i < mesh->mNumFaces; i++)
     {
         this->indeces.push_back(mesh->mFaces[i].mIndices[0]);
         this->indeces.push_back(mesh->mFaces[i].mIndices[1]);
         this->indeces.push_back(mesh->mFaces[i].mIndices[2]);
+    }
+
+    // calculate vertex normlas if they are not defined in .obj
+    if (this->normals.size() == 0)
+    {
+        for (int i = 1; i <= this->vertices.size(); i++)
+        {
+            glm::vec3 tmp = glm::vec3();
+            for (int j = 0; j < this->indeces.size(); j = j + 3)
+            {
+                if (this->indeces[j] == i || this->indeces[j + 1] == i || this->indeces[j + 2] == i)
+                {
+                    glm::vec3 v_x = this->vertices[this->indeces[j] - 1];
+                    glm::vec3 v_x1 = this->vertices[this->indeces[j + 1] - 1];
+                    glm::vec3 v_x2 = this->vertices[this->indeces[j + 2] - 1];
+
+                    glm::vec3 normal = glm::cross((v_x1 - v_x), (v_x2, v_x));
+                    tmp += normal;
+                }
+            }
+            this->normals.push_back(glm::normalize(tmp));
+        }
     }
 
     this->textureCords = std::vector<glm::vec2>();

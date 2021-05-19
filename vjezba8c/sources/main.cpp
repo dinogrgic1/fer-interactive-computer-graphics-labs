@@ -119,9 +119,6 @@ void key_callback(GLFWwindow *window, int key, int scancdoe, int action, int mod
 		for (size_t i = 0; i < objects.size(); i++)
 		{
 			objects[i]->transform->setPosition(tmp);
-			for(int j = 0; j < m->normals.size(); j++) {
-				m->normals[j] += tmp;
-			}
 		}
 	}
 }
@@ -216,8 +213,6 @@ int main(int argc, char *argv[])
 		glBindVertexArray(0);
 		glBindVertexArray(1);
 
-		std::cout << vecNorm.size() << std::endl;
-		std::cout << v.size() << std::endl;
 		Shader *shader = loadShader(argv[0], "shader");
 
 		GLint uniformProj = glGetUniformLocation(shader->ID, "matProjection");

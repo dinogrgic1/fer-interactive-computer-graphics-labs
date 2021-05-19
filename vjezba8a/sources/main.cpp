@@ -32,7 +32,8 @@ glm::mat4 projection = glm::frustum(-offset, offset, -offset, offset, nearPlane,
 //glm::mat4 projection = Transform::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 
 glm::vec3 camera = glm::vec3(0.0f, 0.5f, 2.0f);
-glm::vec4 lightPos = glm::vec4(0.0f, 5.0f, 0.0f, 1.0f);
+glm::vec4 lightPos = glm::vec4(0.0f, 0.0f, 3.0f, 1.0f);
+
 Light light = Light(lightPos.x, lightPos.y, lightPos.z, 0.3f, 0.3f, 0.3f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
 glm::mat4 view = glm::lookAt(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -133,10 +134,10 @@ int main(int argc, char *argv[])
 	objPath.append("/kocka/glava.obj"); //za linux pretvoriti u forwardslash
 
 	const aiScene *scene = importer.ReadFile(objPath.c_str(),
-									aiProcess_CalcTangentSpace |
-									aiProcess_Triangulate |
-									aiProcess_JoinIdenticalVertices |
-									aiProcess_SortByPType);
+											 aiProcess_CalcTangentSpace |
+												 aiProcess_Triangulate |
+												 aiProcess_JoinIdenticalVertices |
+												 aiProcess_SortByPType);
 
 	if (!scene)
 	{
@@ -150,6 +151,7 @@ int main(int argc, char *argv[])
 
 		Mesh *m = new Mesh(mesh);
 		Material objMaterial = Material(scene);
+		
 
 		objects.push_back(new Object(m, new Transform(-0.25f, 0.0f, 0.0f)));
 		objects[0]->transform->scale(2.0f, 2.0f, 2.0f);

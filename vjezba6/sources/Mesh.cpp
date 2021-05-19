@@ -56,6 +56,11 @@ Mesh::Mesh(aiMesh *mesh)
         this->indeces.push_back(mesh->mFaces[i].mIndices[1]);
         this->indeces.push_back(mesh->mFaces[i].mIndices[2]);
     }
+
+    this->textureCords = std::vector<glm::vec2>();
+    for (int i = 0; i < mesh->mVertices->Length(); i++)
+		this->textureCords.push_back(glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y));
+
     this->applyTransform();
 }
 

@@ -152,7 +152,8 @@ int main(int argc, char *argv[])
 		aiMesh *mesh = scene->mMeshes[0];
 		Mesh *m = new Mesh(mesh);
 
-		objects.push_back(new Object(m, new Transform(0.0f, 0.0f, 0.0f)));
+		objects.push_back(new Object(m, new Transform(0.f, 0.0f, 0.0f)));
+		objects.push_back(new Object(m, new Transform(-0.5f, 0.0f, 0.0f)));
 		//objects.push_back(new Object(m, new Transform(0.0f, -0.5f, 0.0f)));
 
 		std::vector<glm::vec3> v = m->getVertices();
@@ -214,13 +215,13 @@ int main(int argc, char *argv[])
 
 #if GL_CULLING == 1
 		Shader *shader = loadShader(argv[0], "shader");
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glEnable(GL_CULL_FACE);
+		glPolygonMode(GL_FRONT, GL_LINE);
+		glEnable(GL_DEPTH_TEST);
 		glCullFace(GL_BACK);
+		glEnable(GL_CULL_FACE);
 #else
 		Shader *shader = loadShader(argv[0], "shader2");
 #endif
-
 		GLint uniformProj = glGetUniformLocation(shader->ID, "matProjection");
 		GLint uniformView = glGetUniformLocation(shader->ID, "matView");
 		GLint uniformModel = glGetUniformLocation(shader->ID, "matModel");
