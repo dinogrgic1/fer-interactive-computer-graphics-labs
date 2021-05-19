@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(vjezba8a)
 
-
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 else()
