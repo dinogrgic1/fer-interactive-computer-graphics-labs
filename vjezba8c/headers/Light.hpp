@@ -10,6 +10,7 @@ private:
     glm::mat3x3 lightMatrix;
 
 public:
-    Light(float, float, float, float, float, float, float, float, float, float, float, float);
+    Light(glm::vec3);
+    Light(glm::vec3, glm::vec3, glm::vec3, glm::vec3);
     glm::mat4x4 getLightMatrix();
 };

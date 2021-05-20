@@ -47,7 +47,6 @@ Mesh::Mesh(aiMesh *mesh)
         this->setMax(t);
     }
 
-
     this->indeces = std::vector<int>();
     this->normals = std::vector<glm::vec3>();
     for (int i = 0; i < mesh->mNumFaces; i++)

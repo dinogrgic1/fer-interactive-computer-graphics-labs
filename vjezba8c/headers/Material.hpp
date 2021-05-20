@@ -14,4 +14,6 @@ class Material
     public:
         Material(const aiScene*);
         glm::mat3x3 getMaterialProps();
+        void print();
 };
+

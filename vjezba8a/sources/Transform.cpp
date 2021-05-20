@@ -1,7 +1,6 @@
 #include "Transform.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
 
 glm::mat4 Transform::translate3D(glm::vec3 tv)
 {
@@ -62,9 +61,15 @@ void Transform::setPosition(glm::vec3 pos)
     this->modelMatrix = this->modelMatrix * Transform::translate3D(pos);
 }
 
+glm::vec3 Transform::getPosition()
+{
+    return this->position;
+}
+
 void Transform::move(glm::vec3 pos)
 {
-    this->setPosition(pos);
+    this->position += pos;
+    this->modelMatrix = this->modelMatrix * Transform::translate3D(pos);
 }
 
 void Transform::rotate(float angle, glm::vec3 direction)
@@ -74,10 +79,5 @@ void Transform::rotate(float angle, glm::vec3 direction)
 
 void Transform::scale(float x, float y, float z)
 {
-    this->modelMatrix = this->modelMatrix * Transform::scale3D(glm::vec3(x, y, z));
-}
-
-glm::vec3 Transform::getEyePosition(glm::mat4 view)
-{
-    return glm::vec3(view[3][0], view[3][1], view[3][2]);
+    this->modelMatrix = glm::scale(this->modelMatrix, glm::vec3(x, y, z));
 }

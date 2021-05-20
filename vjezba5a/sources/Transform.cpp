@@ -13,7 +13,7 @@ void Transform::setPosition(glm::vec3 pos)
 
 void Transform::move(glm::vec3 pos)
 {
-    this->setPosition(pos);
+    this->position += pos;
 }
 
 void Transform::rotate(float angle, glm::vec3 direction)

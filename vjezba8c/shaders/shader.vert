@@ -6,22 +6,23 @@ uniform mat4 matProjection;
 uniform mat4 matView;
 uniform mat4 matModel;
 
-uniform vec4 lightPos;
 uniform vec3 eyeView;
 
 out VS_OUT
 {
  vec3 N;
- vec3 L;
+ vec3 eye;
  vec3 V;
 } vs_out;
 
 void main()
 {
-    vec4 P = matModel * vec4(aPos, 1.0f);
-    vs_out.N = vec3(matModel * vec4(normal, 1.0f));
-    vs_out.L = vec3(lightPos) - P.xyz;
-    vs_out.V = vec3(-P.xyz);
+    mat4 normalMatrix = transpose(inverse(matView* matModel));
+    vec4 vx = normalize(matView * matModel * vec4(aPos, 1.0f));
+    vs_out.V = vec3(vx.xyz / vx.w);
+    vec4 eyex = normalize(matView * matModel * vec4(eyeView, 1.0f));
+    vs_out.eye = vec3(eyex.xyz / eyex.w);
 
+    vs_out.N = normalize(vec3(normalMatrix * vec4(normal, 1.0f)));
     gl_Position = matProjection * matView * matModel * vec4(aPos, 1.0);
 }

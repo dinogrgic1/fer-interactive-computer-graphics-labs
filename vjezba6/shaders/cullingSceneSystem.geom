@@ -13,7 +13,7 @@ void main() {
 
     vec3 c = (v_x + v_x1 + v_x2) / 3;
     vec3 e = eyeView - c;
-    
+
     vec3 normal = cross((v_x1 - v_x), (v_x2 - v_x));
     float res = dot(normal, e);
 

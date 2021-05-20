@@ -9,8 +9,8 @@ uniform mat4 matModel;
 uniform mat3 materialProps;
 uniform mat3 light;
 
-uniform vec4 lightPos;
-uniform vec3 eyeView;
+uniform vec3 lightPos;
+uniform vec3 eye;
 
 out fData 
 {
@@ -21,19 +21,22 @@ out fData
 
 void main()
 {
-    vec4 color = vec4(1.0f, 0.30f, 0.30f, 0.0f);
-    
-    vec4 P = matModel * vec4(normal, 1.0f);
+    vec4 P = matView * matModel * vec4(aPos, 1.0f);
 
-    vec4 toSource = vec4(lightPos.x - P.x, lightPos.y - P.y, lightPos.z - P.z, 1.0f);
-    vec4 toSourceReflect = reflect(toSource, P);
+    vec3 N = normalize(mat3(matView * matModel) * normal);
+    vec3 L = normalize(lightPos - P.xyz);
+    vec3 R = normalize(reflect(-L, N));
+    vec3 V = normalize(eye - vec3(P));
 
-    float coef = dot(toSource, P);
-    float coef2 = dot(toSourceReflect, vec4(eyeView, 1.0f));
+    float coef = dot(N, L);
+    if(coef < 0.0f)
+        coef = 0.0f;
+    float coef2 = pow(dot(R, V), 10.05);
+    if(coef2 < 0.0f)
+        coef2 = 0.0f;
 
     params.Ir = (light[0][0] * materialProps[0][0]) + (light[1][0] * materialProps[1][0]) * coef + (light[2][0] * materialProps[2][0]) * coef2;
     params.Ig = (light[0][1] * materialProps[0][1]) + (light[1][1] * materialProps[1][1]) * coef + (light[2][1] * materialProps[2][1]) * coef2;
-    float Ib = (light[0][2] * materialProps[0][2]) + (light[1][2] * materialProps[1][0]) * coef + (light[2][2] * materialProps[2][2]) * coef2;
-    
-    gl_Position = matProjection * matView * matModel * vec4(aPos, 1.0);
+    params.Ib = (light[0][2] * materialProps[0][2]) + (light[1][2] * materialProps[1][0]) * coef + (light[2][2] * materialProps[2][2]) * coef2;
+    gl_Position = matProjection * P;
 }

@@ -11,11 +11,9 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(dependencies/assimp)
 
-
 add_subdirectory(primjerGLM)
 add_subdirectory(primjerASSIMP)
 add_subdirectory(primjerOpenGL)
-
 
 add_subdirectory(vjezba1)
 add_subdirectory(vjezba2)

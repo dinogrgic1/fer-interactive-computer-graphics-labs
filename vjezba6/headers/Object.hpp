@@ -5,6 +5,8 @@ class Object
 {   
 public:
     Object(Mesh*, Transform*);
+    ~Object();
+
     Transform *transform;
     Mesh *mesh;
 };

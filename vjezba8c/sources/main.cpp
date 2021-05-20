@@ -28,16 +28,15 @@ float offset = 0.5f;
 float nearPlane = 1.0f;
 float farPlane = 100.0f;
 
+
 Mesh *m;
 glm::mat4 projection = glm::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
-//glm::mat4 projection = Transform::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 
 glm::vec3 camera = glm::vec3(0.0f, 0.5f, 2.0f);
-glm::vec4 lightPos = glm::vec4(0.0f, 5.0f, 0.0f, 1.0f);
-Light light = Light(lightPos.x, lightPos.y, lightPos.z, 0.3f, 0.3f, 0.3f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 3.0f);
+Light light = Light(lightPos);
 
 glm::mat4 view = glm::lookAt(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-//glm::mat4 view = Transform::lookAtMatrix(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 Shader *loadShader(char *path, char *naziv)
 {
@@ -132,7 +131,7 @@ int main(int argc, char *argv[])
 	std::string resPath(dirPath);
 	resPath.append("/resources"); //za linux pretvoriti u forwardslash
 	std::string objPath(resPath);
-	objPath.append("/kocka/glava.obj"); //za linux pretvoriti u forwardslash
+	objPath.append("/glava/glava.obj"); //za linux pretvoriti u forwardslash
 
 	const aiScene *scene = importer.ReadFile(objPath.c_str(),
 									aiProcess_CalcTangentSpace |
@@ -152,6 +151,7 @@ int main(int argc, char *argv[])
 
 		m = new Mesh(mesh);
 		Material objMaterial = Material(scene);
+		objMaterial.print();
 
 		objects.push_back(new Object(m, new Transform(-0.25f, 0.0f, 0.0f)));
 		objects[0]->transform->scale(2.0f, 2.0f, 2.0f);
@@ -159,11 +159,10 @@ int main(int argc, char *argv[])
 		std::vector<glm::vec3> v = m->getVertices();
 		std::vector<glm::vec3> vecNorm = m->getVertexNormals();
 		std::vector<int> indeces = m->getIndeces();
-
 		GLFWwindow *window;
 		glfwInit();
 
-		window = glfwCreateWindow(width, height, "Vjezba 8b -- Gouraudovo sjenacnje", nullptr, nullptr);
+		window = glfwCreateWindow(width, height, "Vjezba 8c -- Phongovo sjenacnje", nullptr, nullptr);
 
 		// Check for Valid Context
 		if (window == nullptr)
@@ -198,7 +197,6 @@ int main(int argc, char *argv[])
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-
 		glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
 		glBufferData(GL_ARRAY_BUFFER, vecNorm.size() * sizeof(glm::vec3), &vecNorm[0], GL_STATIC_DRAW);	
 		
@@ -231,9 +229,9 @@ int main(int argc, char *argv[])
 		glEnable(GL_DEPTH_TEST);
 		glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
-
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		glfwSetCursorPos(window, (width) / 2, (height) / 2);
+
 
 		while (glfwWindowShouldClose(window) == false)
 		{
@@ -247,7 +245,7 @@ int main(int argc, char *argv[])
 
 			glUniformMatrix3fv(lightUniform, 1, GL_FALSE, &(lightt[0][0]));
 			glUniformMatrix3fv(materialPropsUniform, 1, GL_FALSE, &(mater[0][0]));
-			glUniform4fv(lightPosUniform, 1, &lightPos[0]);
+			glUniform3fv(lightPosUniform, 1, &lightPos[0]);
 
 			glUniformMatrix4fv(uniformProj, 1, GL_FALSE, &projection[0][0]);
 			glUniformMatrix4fv(uniformView, 1, GL_FALSE, &view[0][0]);

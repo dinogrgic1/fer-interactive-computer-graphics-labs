@@ -10,17 +10,16 @@
 class Shader
 {
 private:
-	void checkCompilerErrors(unsigned int shader, std::string type);
-
-public:
-
-	unsigned int ID;
-
+	static void checkCompilerErrors(unsigned int shader, const std::string& type);
 	Shader(const char* vertexPath, const char* fragmentPath, const char *geometryPath);
 
+public:
+	unsigned int ID;
+
+	static Shader * loadShader(char *path, char *naziv);
 	~Shader();
 
-	void use();
+	void use() const;
 	void setUniform(const std::string &name, bool value)const;
 	void setUniform(const std::string &name, int value)const;
 	void setUniform(const std::string &name, float value)const;
