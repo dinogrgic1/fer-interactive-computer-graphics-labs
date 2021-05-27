@@ -29,4 +29,5 @@ class Transform
     static glm::mat4 scale3D(glm::vec3);
     static glm::mat4 translate3D(glm::vec3);
     static glm::mat4 frustum(float, float, float, float, float, float);
+    static glm::vec3 getEyePosition(glm::mat4);
 };

@@ -76,3 +76,8 @@ void Transform::scale(float x, float y, float z)
 {
     this->modelMatrix = this->modelMatrix * Transform::scale3D(glm::vec3(x, y, z));
 }
+
+glm::vec3 Transform::getEyePosition(glm::mat4 view)
+{
+    return glm::vec3(view[3][0], view[3][1], view[3][2]);
+}

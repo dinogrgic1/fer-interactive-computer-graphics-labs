@@ -13,14 +13,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
 // Standard Headers
 #include <iostream>
 #include <cstdlib>
 
 const int mWidth = 1280;
 const int mHeight = 800;
-
 
 int main(int argc, char * argv[]) {
 

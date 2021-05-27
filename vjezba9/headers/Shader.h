@@ -17,9 +17,8 @@ public:
 	unsigned int ID;
 
 	Shader(const char* vertexPath, const char* fragmentPath, const char *geometryPath);
-    Shader(const char* vertexPath, const char* fragmentPath);
 
-    ~Shader();
+	~Shader();
 
 	void use();
 	void setUniform(const std::string &name, bool value)const;
