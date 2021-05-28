@@ -124,7 +124,6 @@ void key_callback(GLFWwindow *window, int key, int scancdoe, int action, int mod
 int main(int argc, char *argv[])
 {
 	Assimp::Importer importer;
-
 	std::string path(argv[0]);
 	std::string dirPath(path, 0, path.find_last_of("\\/"));
 	std::string resPath(dirPath);
@@ -143,6 +142,7 @@ int main(int argc, char *argv[])
 		std::cerr << importer.GetErrorString();
 		return false;
 	}
+
 
 	if (scene->HasMeshes())
 	{
@@ -187,39 +187,40 @@ int main(int argc, char *argv[])
 		GLuint EBO[2];
         GLuint texture;
 
-//        glGenTextures(1, &texture);
-//        glBindTexture(GL_TEXTURE_2D, texture);
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fbo_width, fbo_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-//        glBindTexture(GL_TEXTURE_2D, 0);
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, objMaterial.getWidth(), objMaterial.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, objMaterial.getData());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-		glGenVertexArrays(1, &VAO);
+        glGenVertexArrays(1, &VAO);
 		glGenBuffers(3, VBO);
-		glGenBuffers(2, EBO);
+		glGenBuffers(1, EBO);
 
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-		glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(glm::vec3), &v[0], GL_STATIC_DRAW);	
+        glBindVertexArray(VAO);
 
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-		glBufferData(GL_ARRAY_BUFFER, vecNorm.size() * sizeof(glm::vec3), &vecNorm[0], GL_STATIC_DRAW);	
-		
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indeces.size() * sizeof(int), &indeces[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+        glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(glm::vec3), &v[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+        glBufferData(GL_ARRAY_BUFFER, vecNorm.size() * sizeof(glm::vec3), &vecNorm[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
         glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
         glBufferData(GL_ARRAY_BUFFER, uvCords.size() * sizeof(glm::vec2), &uvCords[0], GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[0]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indeces.size() * sizeof(int), &indeces[0], GL_STATIC_DRAW);
 
         glBindVertexArray(0);
-		glBindVertexArray(1);
 
-		Shader *shader = loadShader(argv[0], "shader");
-
+        Shader *shader = loadShader(argv[0], "shader");
 		GLint uniformProj = glGetUniformLocation(shader->ID, "matProjection");
 		GLint uniformView = glGetUniformLocation(shader->ID, "matView");
 		GLint uniformModel = glGetUniformLocation(shader->ID, "matModel");
@@ -247,7 +248,7 @@ int main(int argc, char *argv[])
 				glfwSetWindowShouldClose(window, true);
 
 			glUseProgram(shader->ID);
-			glBindVertexArray(VAO);
+            glBindVertexArray(VAO);
 
 			glUniformMatrix3fv(lightUniform, 1, GL_FALSE, &(lightt[0][0]));
 			glUniformMatrix3fv(materialPropsUniform, 1, GL_FALSE, &(mater[0][0]));
@@ -262,15 +263,14 @@ int main(int argc, char *argv[])
 				glUniformMatrix4fv(uniformModel, 1, GL_FALSE, &(objects[i]->transform->modelMatrix[0][0]));
 				glDrawElements(GL_TRIANGLES, indeces.size(), GL_UNSIGNED_INT, 0);
 			}
-
 			glBindVertexArray(0);
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
 
 		delete shader;
-		glDeleteTextures(1, &texture);
-		glDeleteBuffers(3, VBO);
+        glDeleteTextures(1, &texture);
+		glDeleteBuffers(2, VBO);
 		glDeleteBuffers(2, EBO);
 		glDeleteVertexArrays(1, &VAO);
 		glfwTerminate();

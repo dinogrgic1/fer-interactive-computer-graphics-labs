@@ -1,7 +1,7 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 uv;
+layout (location = 2) in vec2 texCord;
 
 uniform mat4 matProjection;
 uniform mat4 matView;
@@ -14,6 +14,7 @@ out VS_OUT
  vec3 eye;
  vec3 V;
 } vs_out;
+out vec2 UV;
 
 void main()
 {
@@ -25,4 +26,5 @@ void main()
 
     vs_out.N = normalize(vec3(normalMatrix * vec4(normal, 1.0f)));
     gl_Position = matProjection * matView * matModel * vec4(aPos, 1.0);
+    UV = texCord;
 }

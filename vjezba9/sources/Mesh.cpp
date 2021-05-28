@@ -31,17 +31,21 @@ Mesh::Mesh(aiMesh *mesh)
     this->min = this->max = glm::vec3(t);
 
     this->normals = std::vector<glm::vec3>();
-    this->normals.push_back(glm::vec3(mesh->mNormals[0].x, mesh->mNormals[0].y, mesh->mNormals[0].z));
+    this->textureCords = std::vector<glm::vec2>();
+
+    this->normals.emplace_back(mesh->mNormals[0].x, mesh->mNormals[0].y, mesh->mNormals[0].z);
+    this->textureCords.emplace_back(mesh->mTextureCoords[0][0].x, mesh->mTextureCoords[0][0].y);
 
     this->vertices = std::vector<glm::vec3>();
     this->vertices.push_back(t);
     for (int i = 1; i < mesh->mNumVertices; i++)
     {
         t = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-        this->normals.push_back(glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z));
+        this->normals.emplace_back(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         this->vertices.push_back(t);
         this->setMin(t);
         this->setMax(t);
+        this->textureCords.emplace_back(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
     }
 
     this->indeces = std::vector<int>();
@@ -74,10 +78,6 @@ Mesh::Mesh(aiMesh *mesh)
             this->normals.push_back(glm::normalize(tmp));
         }
     }
-
-    this->textureCords = std::vector<glm::vec2>();
-    for (int i = 0; i < mesh->mVertices->Length(); i++)
-        this->textureCords.push_back(glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y));
 
     this->applyTransform();
 }

@@ -5,7 +5,9 @@ uniform mat3 materialProps;
 uniform mat3 light;
 
 uniform vec3 lightPos;
+uniform sampler2D texImage;
 
+in vec2 UV;
 in VS_OUT
 {
     vec3 N;
@@ -15,8 +17,7 @@ in VS_OUT
 
 void main()
 {
-    vec4 color = vec4(0.0f, 0.39f, 0.0f, 0.0f);
-
+    vec3 color = texture(texImage, UV).rgb;
     vec3 N = normalize(fs_in.N);
     vec3 L = normalize(lightPos - fs_in.V);
     vec3 V = normalize(fs_in.eye - fs_in.V);
@@ -36,4 +37,4 @@ void main()
     float Ib = (light[0][2] * materialProps[0][2]) + (light[1][2] * materialProps[1][0]) * coef + (light[2][2] * materialProps[2][2]) * coef2;
 
     FragColor = vec4(color.x * Ir, color.y * Ig, color.z * Ib, 0.0f);
-} 
+}
