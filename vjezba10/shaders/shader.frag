@@ -23,30 +23,32 @@ void main()
     V_1_normlized = V_1_normlized * 0.5 + 0.5;
     float closestDepth = texture(shadowMap, V_1_normlized.xy).r;
     float currentDepth = V_1_normlized.z;
-//
-//    vec3 normal = normalize(fs_in.N);
-//    vec3 lightDir = normalize(lightPos - fs_in.V);
-//    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-//    // check whether current frag pos is in shadow
-//    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-//    // PCF
-//    float shadow = 0.0f;
-//    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-//    for(int x = -1; x <= 1; ++x)
-//    {
-//        for(int y = -1; y <= 1; ++y)
-//        {
-//            float pcfDepth = texture(shadowMap, V_1_normlized.xy + vec2(x, y) * texelSize).r;
-//            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
-//        }
-//    }
-//    shadow /= 9.0f;
 
-    float shadow = currentDepth > closestDepth  ? 1.0f : 0.0f;
+    vec3 L = normalize(lightPos - fs_in.V);
+    vec3 N = normalize(fs_in.N);
+
+    float bias = 0.005;
+    float shadow = 1.0f - pow(length(V_1.xy / V_1.w), 2);
+    if(shadow < 0.0f) {
+        shadow = 0.0f;
+    }
+
+    if(currentDepth > closestDepth) {
+//        float shadow = 0.0;
+//        vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+//        for(int x = -1; x <= 1; ++x)
+//        {
+//            for(int y = -1; y <= 1; ++y)
+//            {
+//                float pcfDepth = texture(shadowMap, V_1_normlized.xy + vec2(x, y) * texelSize).r;
+//                shadow += currentDepth - bias > pcfDepth ? 0.0 : 1.0;
+//            }
+//        }
+//        shadow /= 9.0;
+        shadow = 0.0f;
+    }
 
     vec3 color = texture(diffuseTexture, UV).rgb;
-    vec3 N = normalize(fs_in.N);
-    vec3 L = normalize(lightPos - fs_in.V);
     vec3 V = normalize(fs_in.eye - fs_in.V);
     vec3 R = normalize(reflect(-L, N));
 
@@ -60,9 +62,9 @@ void main()
         coef2 = 0.0f;
     }
 
-    float Ir = (light[0][0] * materialProps[0][0]) + (shadow) * ((light[1][0] * materialProps[1][0]) * coef + (light[2][0] * materialProps[2][0]) * coef2);
-    float Ig = (light[0][1] * materialProps[0][1]) + (shadow) * ((light[1][1] * materialProps[1][1]) * coef + (light[2][1] * materialProps[2][1]) * coef2);
-    float Ib = (light[0][2] * materialProps[0][2]) + (shadow) * ((light[1][2] * materialProps[1][0]) * coef + (light[2][2] * materialProps[2][2]) * coef2);
+    float Ir = (light[0][0] * materialProps[0][0]) + shadow * ((light[1][0] * materialProps[1][0]) * coef + (light[2][0] * materialProps[2][0]) * coef2);
+    float Ig = (light[0][1] * materialProps[0][1]) + shadow * ((light[1][1] * materialProps[1][1]) * coef + (light[2][1] * materialProps[2][1]) * coef2);
+    float Ib = (light[0][2] * materialProps[0][2]) + shadow * ((light[1][2] * materialProps[1][0]) * coef + (light[2][2] * materialProps[2][2]) * coef2);
 
     FragColor = vec4(color.x * Ir, color.y * Ig, color.z * Ib, 0.0f);
 }
