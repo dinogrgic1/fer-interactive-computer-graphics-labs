@@ -28,12 +28,13 @@ float offset = 0.5f;
 float nearPlane = 1.0f;
 float farPlane = 100.0f;
 
+
 Mesh *m;
 glm::mat4 projectionLight = glm::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 glm::mat4 projection = glm::frustum(-offset, offset, -offset, offset, nearPlane, farPlane);
 
 glm::vec3 camera = glm::vec3(0.0f, 1.5f, 3.0f);
-glm::vec3 lightPos = glm::vec3(0.0f, 5.0f, 5.0f);
+glm::vec3 lightPos = glm::vec3(0.0f, 2.5f, 2.5f);
 Light light = Light(lightPos);
 
 glm::mat4 view = glm::lookAt(camera, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -299,8 +300,8 @@ int main(int argc, char *argv[])
 
             // 1st --- render
             glUseProgram(shaderDepthMap->ID);
-            glCullFace(GL_FRONT);
             glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
             glViewport(0, 0, 1024, 1024);
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
@@ -323,8 +324,8 @@ int main(int argc, char *argv[])
             // 2nd --- render
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glUseProgram(shader->ID);
-            glCullFace(GL_BACK);
             glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
             glViewport(0, 0, width, height);
             glUniform1i(diffuseTextureUniform, 0);
             glUniform1i(shadowMapUniform, 1);
